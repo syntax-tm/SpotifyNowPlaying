@@ -1,0 +1,24 @@
+{
+  "delay": 2000,
+  "outputFolder": "C:/test",
+  "outputs": [
+    {
+      "name": "Artist Output",
+      "enabled": true,
+      "fileName": "artist.txt",
+      "fileFormat": "{artist}"
+    },
+    {
+      "name": "Song Output",
+      "enabled": true,
+      "fileName": "song.txt",
+      "fileFormat": "{song}"
+    },
+    {
+      "name": "Current Song Output",
+      "enabled": true,
+      "fileName": "currentSong.txt",
+      "fileFormat": "{song}{newline}by {artist}"
+    }
+  ]
+}
