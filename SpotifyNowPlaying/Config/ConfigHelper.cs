@@ -39,7 +39,7 @@ namespace SpotifyNowPlaying.Config
             }
             catch (Exception e)
             {
-                var message = $"An error occurred atttempting to create the config file. {e.Message}";
+                var message = $"An error occurred attempting to create the config file. {e.Message}";
 
                 log.Error(message, e);
 
