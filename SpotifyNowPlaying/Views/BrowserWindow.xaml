@@ -1,0 +1,33 @@
+﻿<Window x:Class="SpotifyNowPlaying.Views.BrowserWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SpotifyNowPlaying.Views"
+        xmlns:dxmvvm="http://schemas.devexpress.com/winfx/2008/xaml/mvvm"
+        xmlns:vm="clr-namespace:SpotifyNowPlaying.ViewModels"
+        xmlns:wpf="clr-namespace:CefSharp.Wpf;assembly=CefSharp.Wpf"
+        xmlns:wpfc="clr-namespace:CefSharp;assembly=CefSharp.Core"
+        mc:Ignorable="d"
+        Title="{Binding ElementName=wbChromium, Path=Title, Mode=OneWay, FallbackValue='', TargetNullValue=''}"
+        ResizeMode="CanResizeWithGrip" WindowStartupLocation="CenterScreen" WindowStyle="ToolWindow"
+        Icon="pack://application:,,,/spotify_now_playing.ico"
+        d:DataContext="{d:DesignInstance Type={x:Type vm:BrowserViewModel}, IsDesignTimeCreatable=False}"
+        Width="600" Height="800">
+
+    <dxmvvm:Interaction.Behaviors>
+        <dxmvvm:CurrentWindowService />
+    </dxmvvm:Interaction.Behaviors>
+
+    <Grid>
+        <Border BorderThickness="1" BorderBrush="{StaticResource ControlBorderBrush}">
+            <wpf:ChromiumWebBrowser x:Name="wbChromium" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                    Address="{Binding SourceUri}">
+                <wpf:ChromiumWebBrowser.BrowserSettings>
+                    <wpfc:BrowserSettings DefaultEncoding="UTF-8"/>
+                </wpf:ChromiumWebBrowser.BrowserSettings>
+            </wpf:ChromiumWebBrowser>
+        </Border>
+    </Grid>
+
+</Window>

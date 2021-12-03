@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using JetBrains.Annotations;
 
-namespace SpotifyNowPlaying.Extensions
+namespace SpotifyNowPlaying.Common
 {
     public static class DictionaryExtensions
     {

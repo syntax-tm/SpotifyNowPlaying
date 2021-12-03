@@ -1,162 +1,96 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 using log4net;
-using SpotifyNowPlaying.Config;
-using SpotifyNowPlaying.Extensions;
+using SpotifyNowPlaying.Common;
 
 namespace SpotifyNowPlaying.Output
 {
     public static class OutputManager
     {
+        private static readonly ILog log = LogManager.GetLogger(typeof(OutputManager));
 
-        private static readonly ILog log = LogManager.GetLogger(nameof(OutputManager));
+        private const string OUTPUT_DIRECTORY = @"C:\test";
 
-        private static IDictionary<string, string> _staticTokens;
+        private static SpotifyPlaybackState _previousState;
 
-        public static void Clear()
+        public static void Cleanup()
         {
-            var outputs = ConfigHelper.CurrentConfig.Outputs;
-            var activeOutputs = ValidateOutputs(outputs);
+            DeleteFile(@"song.txt");
+            DeleteFile(@"artist.txt");
+            DeleteFile(@"album.txt");
+            DeleteFile(@"playlist.txt");
+            DeleteFile(@"album.jpg");
+            DeleteFile(@"playlist.jpg");
 
-            if (!activeOutputs.Any()) return;
+            log.Info("Finished cleaning up output files.");
+        }
 
-            foreach (var output in activeOutputs)
+        public static void Process(SpotifyPlaybackState state)
+        {
+            if (_previousState != null && _previousState.Equals(state))
             {
-                var outputPath = Path.Combine(ConfigHelper.CurrentConfig.OutputFolder, output.FileName);
-
-                File.WriteAllText(outputPath, string.Empty, Encoding.UTF8);
-            }
-        }
-
-        public static void Process()
-        {
-            var outputs = ConfigHelper.CurrentConfig.Outputs;
-            var activeOutputs = ValidateOutputs(outputs);
-
-            if (!activeOutputs.Any()) return;
-
-            foreach (var output in activeOutputs)
-            {
-                var outputPath = Path.Combine(ConfigHelper.CurrentConfig.OutputFolder, output.FileName);
-                var formattedText = Format(output.FileFormat);
-
-                File.WriteAllText(outputPath, formattedText, Encoding.UTF8);
-            }
-        }
-
-        private static IDictionary<string, string> GetStaticTokens()
-        {
-            if (_staticTokens != null) return _staticTokens;
-
-            _staticTokens = new Dictionary<string, string>
-                    {
-                        { "{newline}", Environment.NewLine },
-                        { "{nl}", Environment.NewLine },
-                        { "{tab}", "\t" },
-                        { "{t}", "\t" },
-                        { "{space}", " " },
-                        { "{s}", " " },
-                        { "{cr}", "\r" },
-                        { "{lf}", "\n" },
-                        { "{crlf}", "\r\n" },
-                        { "{quote}", "'" },
-                        { "{q}", "'" },
-                        { "{dquote}", "\"" },
-                        { "{dq}", "\"" },
-                        { "{unicode}", "\0" },
-                        { "{u}", "\0" },
-                        { "{alert}", "\a" },
-                        { "{a}", "\a" },
-                        { "{form}", "\f" },
-                        { "{f}", "\f" },
-                        { "{vtab}", "\v" },
-                        { "{bs}", "\\" }
-                    };
-
-            return _staticTokens;
-        }
-
-        private static IDictionary<string, string> GetDateTokens()
-        {
-            return new Dictionary<string, string>
-                {
-                    {"{longdate}", DateTime.Now.ToLongDateString()},
-                    {"{longtime}", DateTime.Now.ToLongTimeString()},
-                    {"{date}", DateTime.Now.ToShortDateString()},
-                    {"{time}", DateTime.Now.ToShortTimeString()},
-                    {"{dayofweek}", DateTime.Now.DayOfWeek.ToString()},
-                    {"{hour}", DateTime.Now.Hour.ToString()},
-                    {"{minutes}", DateTime.Now.Minute.ToString()},
-                    {"{month}", DateTime.Now.Month.ToString()},
-                    {"{year}", DateTime.Now.Year.ToString()}
-                };
-        }
-
-        private static IDictionary<string, string> GetSpotifyTokens()
-        {
-            var currentlyPlaying = SpotifyHelper.CurrentlyPlaying;
-            var previouslyPlaying = SpotifyHelper.PreviouslyPlaying;
-            var spotifyTokens = new Dictionary<string, string>
-                {
-                    { "{artist}", currentlyPlaying?.Artist },
-                    { "{song}", currentlyPlaying?.Song },
-                    { "{previous_artist}", previouslyPlaying?.Artist },
-                    { "{previous_song}", previouslyPlaying?.Artist }
-                };
-
-            return spotifyTokens;
-        }
-
-        private static IDictionary<string, string> GetTokens()
-        {
-            var staticTokens = GetStaticTokens();
-            var dateTokens = GetDateTokens();
-            var spotifyTokens = GetSpotifyTokens();
-
-            return new Dictionary<string, string>
-                     {
-                         staticTokens,
-                         dateTokens,
-                         spotifyTokens
-                     };
-        }
-
-        private static string Format(string stringFormat)
-        {
-            var tokens = GetTokens();
-            var output = stringFormat;
-
-            foreach (var token in tokens.Keys)
-            {
-                if (!output.Contains(token)) continue;
-                var tokenValue = tokens[token] ?? string.Empty;
-                output = output.Replace(token, tokenValue);
+                return;
             }
 
-            return output;
+            var context = new OutputContext(state);
+
+            log.Info($"Outputting playback information for {state}...");
+
+            SaveText(@"song.txt", context.Song.Name);
+            SaveText(@"artist.txt", context.Artist.Name);
+            SaveText(@"album.txt", context.Album.Name);
+            SaveText(@"playlist.txt", context.Playlist.Name);
+            
+            SaveImage(@"album.jpg", context.Album.ImageUrl);
+            SaveImage(@"playlist.jpg", context.Playlist.ImageUrl);
+
+            log.Info($"Finished outputting playback information for {state}.");
+
+            _previousState = state;
         }
 
-        private static IList<OutputConfig> ValidateOutputs([NotNull] IList<OutputConfig> outputs)
+        private static string GetFullPath(string path)
         {
-            if (!outputs.Any())
-            {
-                log.Warn("Current configuration contains no outputs.");
-                return null;
-            }
-
-            var activeOutputs = outputs.Where(o => o.Enabled).ToList();
-            if (!activeOutputs.Any())
-            {
-                log.Warn("All outputs are currently disabled.");
-                return null;
-            }
-
-            return activeOutputs;
+            return Path.Combine(OUTPUT_DIRECTORY, path);
         }
 
+        private static void DeleteFile(string path)
+        {
+            var fullPath = GetFullPath(path);
+
+            if (!File.Exists(fullPath)) return;
+
+            File.Delete(fullPath);
+
+            log.Debug($"Deleted file '{path}'.");
+        }
+
+        private static void SaveText([NotNull] string path, string text)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+
+            var fullPath = GetFullPath(path);
+
+            File.WriteAllText(fullPath, text);
+
+            log.Debug($"Saved text '{text}' to '{path}'.");
+        }
+
+        private static void SaveImage(string path, string url)
+        {
+            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
+            
+            var fullPath = GetFullPath(path);
+
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                DeleteFile(path);
+
+                return;
+            }
+            
+            WebClientHelper.SaveImage(url, fullPath);
+        }
     }
 }

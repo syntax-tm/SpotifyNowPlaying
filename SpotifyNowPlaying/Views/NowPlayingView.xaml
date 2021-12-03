@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="SpotifyNowPlaying.Views.NowPlayingView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:SpotifyNowPlaying.Views"
+             xmlns:nowPlaying="clr-namespace:SpotifyNowPlaying.Views.NowPlaying"
+             xmlns:common="clr-namespace:SpotifyNowPlaying.Common"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800"
+             d:DataContext="{d:DesignInstance Type={x:Type common:SpotifyPlaybackState}}">
+    <Grid>
+        <Grid Visibility="{Binding IsPlaying, FallbackValue=Collapsed, TargetNullValue=Collapsed, Converter={StaticResource BoolToVisConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <nowPlaying:NowPlayingTrackView Margin="3" />
+            <nowPlaying:NowPlayingContextView Grid.Row="1" Margin="3" Visibility="{Binding HasPlaylist, Converter={StaticResource BoolToVisConverter}}" />
+        </Grid>
+        <Grid Visibility="{Binding IsPlaying, FallbackValue=Visible, TargetNullValue=Visible, Converter={StaticResource BoolToVisInverseConverter}}" >
+            <Label Content="Playback is stopped"
+                   VerticalAlignment="Center" HorizontalAlignment="Center" Style="{StaticResource H1Style}" />
+        </Grid>
+    </Grid>
+</UserControl>

@@ -1,75 +1,70 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <!--Project was exported from assembly: C:\tools\decomp\OBSCurrentSong.exe-->
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5B2C518B-D5A1-41DC-991B-F8BC154DB370}</ProjectGuid>
+    <TargetFramework>net5.0-windows</TargetFramework>
     <OutputType>Exe</OutputType>
-    <AssemblyName>SpotifyNowPlaying</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <ApplicationVersion>1.0.0.0</ApplicationVersion>
-    <FileAlignment>512</FileAlignment>
-    <RootNamespace>SpotifyNowPlaying</RootNamespace>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWPF>true</UseWPF>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationIcon>spotify_now_playing.ico</ApplicationIcon>
+    <StartupObject>SpotifyNowPlaying.App</StartupObject>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <PackageProjectUrl>https://github.com/syntax-tm/SpotifyNowPlaying</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/syntax-tm/SpotifyNowPlaying</RepositoryUrl>
+    <RepositoryType />
+    <PackageTags>spotify,obs,obs-studio,music,audio,plugin,formatter,output</PackageTags>
+    <Authors>https://github.com/syntax-tm</Authors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <DefineConstants>TRACE;DEBUG;JETBRAIN_ANNOTATIONS</DefineConstants>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;JETBRAIN_ANNOTATIONS</DefineConstants>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <DefineConstants>TRACE;DEBUG;JETBRAIN_ANNOTATIONS</DefineConstants>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x86'">
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(PlatformTarget)' == 'x64'">
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="JetBrains.Annotations, Version=2020.2.0.0, Culture=neutral, PublicKeyToken=1010a0d8d6380325, processorArchitecture=MSIL">
-      <HintPath>..\packages\JetBrains.Annotations.2020.2.0-eap\lib\net20\JetBrains.Annotations.dll</HintPath>
-    </Reference>
-    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.8\lib\net45-full\log4net.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Xml" />
+    <None Remove="SpotifyNowPlaying.csproj.DotSettings" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common\DirectoryHelper.cs" />
-    <Compile Include="Common\Extensions\DictionaryExtensions.cs" />
-    <Compile Include="Common\Extensions\StringExtensions.cs" />
-    <Compile Include="Config\ConfigHelper.cs" />
-    <Compile Include="Config\NowPlayingConfig.cs" />
-    <Compile Include="Config\OutputConfig.cs" />
-    <Compile Include="Config\LoggingHelper.cs" />
-    <Compile Include="Output\OutputManager.cs" />
-    <Compile Include="Program.cs" />
-    <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="Common\TrackInfo.cs" />
-    <Compile Include="Common\SpotifyHelper.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="exampleConfig.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Update="Views\BrowserWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="spotify_now_playing.ico" />
+    <Content Include="spotify_now_playing.ico">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <PackageReference Include="CefSharp.Wpf" Version="95.7.141">
+      <NoWarn>NU1701</NoWarn>
+    </PackageReference>
+    <PackageReference Include="CefSharp.Wpf.NETCore" Version="95.7.141" />
+    <PackageReference Include="DevExpressMvvm" Version="21.1.5" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+    <PackageReference Include="log4net" Version="2.0.13" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
+    <PackageReference Include="SpotifyAPI.Web.Auth" Version="6.2.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="App.xaml" />
+  </ItemGroup>
 </Project>
