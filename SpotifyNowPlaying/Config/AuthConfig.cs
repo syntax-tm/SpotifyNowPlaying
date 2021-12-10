@@ -7,8 +7,6 @@ namespace SpotifyNowPlaying.Config
 {
     public class AuthConfig
     {
-        private PKCETokenResponse _response;
-
         [JsonProperty("isImplicitGrant")]
         public bool IsImplicitGrant { get; set; }
         [JsonProperty("authCode")]
@@ -25,26 +23,7 @@ namespace SpotifyNowPlaying.Config
         public string CallbackUrl { get; set; }
         [JsonProperty("tokenType")]
         public string TokenType { get; set; }
-
         [JsonProperty("tokenResponse")]
-        public PKCETokenResponse TokenResponse
-        {
-            get => _response;
-            set => _response = value;
-        }
-
-        public async Task RefreshAsync()
-        {
-            _response = await new OAuthClient().RequestToken(
-                new PKCETokenRefreshRequest(ClientId, _response.RefreshToken)
-            );
-        }
-
-        public async Task GetResponse()
-        {
-            _response = await new OAuthClient().RequestToken(
-                new PKCETokenRequest(ClientId, AuthCode, new Uri(CallbackUrl), Verifier)
-            );
-        }
+        public PKCETokenResponse TokenResponse { get; set; }
     }
 }

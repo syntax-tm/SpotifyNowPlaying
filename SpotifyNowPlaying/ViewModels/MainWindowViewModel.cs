@@ -29,7 +29,7 @@ namespace SpotifyNowPlaying.ViewModels
             {
                 WorkerSupportsCancellation = true
             };
-
+            
             _backgroundWorker.DoWork += BackgroundWorkerOnDoWork;
             _backgroundWorker.RunWorkerCompleted += BackgroundWorkerOnRunWorkerCompleted;
 
@@ -66,9 +66,10 @@ namespace SpotifyNowPlaying.ViewModels
                     
                     Thread.Sleep(TimeSpan.FromMilliseconds(sleepTime));
                 }
-                catch (APIUnauthorizedException aue)
+                catch (APIException ae)
                 {
-                    log.Error($"An {nameof(APIUnauthorizedException)} error occurred getting the current playback. {aue.Message}", aue);
+                    var exType = ae.GetType().Name;
+                    log.Error($"An {exType} error occurred getting the current playback. {ae.Message}", ae);
                     e.Cancel = true;
                     _backgroundWorker.CancelAsync();
                 }

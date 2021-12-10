@@ -22,10 +22,7 @@
     <Grid>
         <Border BorderThickness="1" BorderBrush="{StaticResource ControlBorderBrush}">
             <wpf:ChromiumWebBrowser x:Name="wbChromium" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                    Address="{Binding SourceUri}">
-                <wpf:ChromiumWebBrowser.BrowserSettings>
-                    <wpfc:BrowserSettings DefaultEncoding="UTF-8"/>
-                </wpf:ChromiumWebBrowser.BrowserSettings>
+                                    Address="{Binding SourceUri, Mode=OneTime, FallbackValue='', TargetNullValue=''}">
             </wpf:ChromiumWebBrowser>
         </Border>
     </Grid>

@@ -1,11 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using log4net;
 using Newtonsoft.Json;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
+using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.Common
 {
@@ -15,42 +15,36 @@ namespace SpotifyNowPlaying.Common
         
         private const string TOKEN_CACHE_NAME = @"user.json";
         private const string REDIRECT_URL = @"http://localhost:5000/callback";
-        private const string CALLBACK_URL = @"http://localhost:5000";
-        private const string LISTENER_URL = @"http://*:5000/";
         private const string CLIENT_ID = @"c77562b58c1342598aef24a3efb28bce";
         private const string CODE_CHALLENGE_METHOD = @"S256";
 
-        private static SpotifyClient _client;
         private static string _verifier;
         private static string _challenge;
-        private static TaskCompletionSource<bool> _tcs;
         private static EmbedIOAuthServer _server;
-        private static AuthorizationCodeTokenResponse _tokenResponse;
+        private static TaskCompletionSource<bool> _tcs;
         
+        private static SpotifyClient _client;
         public static SpotifyClient Client => _client;
 
-        public static IAuthenticator Authenticator { get; set; }
-        public static SpotifyClientConfig ClientConfig { get; set; }
-        
         public static async Task Init()
         {
-            (_verifier, _challenge) = PKCEUtil.GenerateCodes();
+            (_verifier, _challenge) = PKCEUtil.GenerateCodes(120);
 
             _server = new EmbedIOAuthServer(new Uri(REDIRECT_URL), 5000);
             await _server.Start();
-
+            
             _server.AuthorizationCodeReceived += OnAuthReceived;
             _server.ErrorReceived += OnErrorReceived;
 
-            var request = new LoginRequest(_server.BaseUri, CLIENT_ID, LoginRequest.ResponseType.Code)
+            var request = new LoginRequest(new Uri(REDIRECT_URL), CLIENT_ID, LoginRequest.ResponseType.Code)
             {
                 CodeChallengeMethod = CODE_CHALLENGE_METHOD,
                 CodeChallenge = _challenge,
-                Scope = new List<string> { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserReadRecentlyPlayed }
+                Scope = new [] { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserReadRecentlyPlayed }
             };
             
             _tcs = new TaskCompletionSource<bool>();
-
+            
             BrowserUtil.Open(request.ToUri());
 
             await _tcs.Task;
@@ -61,7 +55,7 @@ namespace SpotifyNowPlaying.Common
             try
             {
                 await _server.Stop();
-
+                
                 var success = await LoadConfig(response);
                 if (!success)
                 {
@@ -74,19 +68,28 @@ namespace SpotifyNowPlaying.Common
             catch (Exception e)
             {
                 log.Error($"An error occurred handling the auth response. {e.Message}");
-
+        
                 _tcs.SetResult(false);
             }
         }
         
         private static async Task OnErrorReceived(object sender, string error, string state)
         {
-            log.Error($"Aborting authorization, error received: {error}.");
-            log.Fatal("Login failed. See above for more information. Application exiting...");
-            
-            await _server.Stop();
+            try
+            {
+                log.Error($"Aborting authorization, error received: {error}.");
+                log.Fatal("Login failed. See above for more information. Application exiting...");
 
-            Environment.Exit(AppExitCode.LoginFailed);
+                await _server.Stop();
+            }
+            catch (Exception e)
+            {
+                log.Fatal($"An error occurred during application exit. {e.Message}", e);
+            }
+            finally
+            {
+                Environment.Exit(AppExitCode.LoginFailed);
+            }
         }
         
         private static async Task<bool> LoadConfig([NotNull] AuthorizationCodeResponse response)
@@ -95,11 +98,28 @@ namespace SpotifyNowPlaying.Common
 
             try
             {
-                _tokenResponse = await new OAuthClient().RequestToken(
-                    new TokenSwapTokenRequest(new Uri("http://localhost:5001/swap"), response.Code)
+                var initialResponse = await new OAuthClient().RequestToken(
+                    new PKCETokenRequest(CLIENT_ID, response.Code, new Uri(REDIRECT_URL), _verifier)
                 );
                 
-                _client = new SpotifyClient(_tokenResponse.AccessToken);
+                var authenticator = new PKCEAuthenticator(CLIENT_ID, initialResponse);
+
+                var config = SpotifyClientConfig.CreateDefault()
+                    .WithAuthenticator(authenticator);
+
+                _client = new SpotifyClient(config);
+
+                var authConfig = new AuthConfig
+                {
+                    Challenge = _challenge,
+                    CallbackUrl = REDIRECT_URL,
+                    Verifier = _verifier,
+                    AuthCode = response.Code,
+                    TokenResponse = initialResponse,
+                    ClientId = CLIENT_ID
+                };
+
+                SaveCreds(authConfig);
 
                 return true;
             }
@@ -112,17 +132,8 @@ namespace SpotifyNowPlaying.Common
                 throw new SpotifyNowPlayingException(e.Message, e);
             }
         }
-
-        private static async Task Refresh()
-        {
-            if (!_tokenResponse.IsExpired) return;
-
-            var newResponse = await new OAuthClient().RequestToken(
-                new TokenSwapTokenRequest(new Uri("http://localhost:5001/swap"), _tokenResponse.RefreshToken)
-            );
-        }
-
-        private static void SaveCreds(ImplictGrantResponse response)
+        
+        private static void SaveCreds(AuthConfig response)
         {
             if (response == null) throw new ArgumentNullException(nameof(response));
 
