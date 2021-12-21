@@ -1,96 +1,137 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using JetBrains.Annotations;
+using System.Linq;
 using log4net;
 using SpotifyNowPlaying.Common;
+using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.Output
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public static class OutputManager
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(OutputManager));
-
-        private const string OUTPUT_DIRECTORY = @"C:\test";
-
+        
         private static SpotifyPlaybackState _previousState;
 
         public static void Cleanup()
         {
-            DeleteFile(@"song.txt");
-            DeleteFile(@"artist.txt");
-            DeleteFile(@"album.txt");
-            DeleteFile(@"playlist.txt");
-            DeleteFile(@"album.jpg");
-            DeleteFile(@"playlist.jpg");
+            try
+            {
+                var settings = SettingsHelper.Instance.CurrentSettings;
+                var fileTypes = Enum.GetValues<FileType>();
 
-            log.Info("Finished cleaning up output files.");
+                foreach (var fileType in fileTypes)
+                {
+                    DeleteFile(settings, fileType);
+                }
+            
+                log.Info("Finished cleaning up output files.");
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred during cleanup. {e.Message}";
+                log.Error(message, e);
+            }
         }
 
         public static void Process(SpotifyPlaybackState state)
         {
-            if (_previousState != null && _previousState.Equals(state))
+            try
             {
-                return;
-            }
-
-            var context = new OutputContext(state);
-
-            log.Info($"Outputting playback information for {state}...");
-
-            SaveText(@"song.txt", context.Song.Name);
-            SaveText(@"artist.txt", context.Artist.Name);
-            SaveText(@"album.txt", context.Album.Name);
-            SaveText(@"playlist.txt", context.Playlist.Name);
+                if (_previousState == null || _previousState.Equals(state))
+                {
+                    return;
+                }
             
-            SaveImage(@"album.jpg", context.Album.ImageUrl);
-            SaveImage(@"playlist.jpg", context.Playlist.ImageUrl);
+                var settings = SettingsHelper.Instance.CurrentSettings;
+                var context = new OutputContext(state);
 
-            log.Info($"Finished outputting playback information for {state}.");
+                log.Info($"Outputting playback information for {state}...");
+                
+                var ignored = new[] { FileType.None, FileType.Text, FileType.Image };
+                var fileTypes = Enum.GetValues<FileType>().Except(ignored);
+                foreach (var fileType in fileTypes)
+                {
+                    Save(settings, context, fileType);
+                }
+            
+                log.Info($"Finished outputting playback information for {state}.");
 
-            _previousState = state;
+                _previousState = state;
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred processing the output for state {state}. {e.Message}";
+                log.Error(message, e);
+            }
         }
-
-        private static string GetFullPath(string path)
-        {
-            return Path.Combine(OUTPUT_DIRECTORY, path);
-        }
-
+        
         private static void DeleteFile(string path)
         {
-            var fullPath = GetFullPath(path);
-
-            if (!File.Exists(fullPath)) return;
-
-            File.Delete(fullPath);
-
-            log.Debug($"Deleted file '{path}'.");
-        }
-
-        private static void SaveText([NotNull] string path, string text)
-        {
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
-
-            var fullPath = GetFullPath(path);
-
-            File.WriteAllText(fullPath, text);
-
-            log.Debug($"Saved text '{text}' to '{path}'.");
-        }
-
-        private static void SaveImage(string path, string url)
-        {
-            if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
-            
-            var fullPath = GetFullPath(path);
-
-            if (string.IsNullOrWhiteSpace(url))
+            try
             {
-                DeleteFile(path);
+                if (!File.Exists(path)) return;
 
-                return;
-            }
+                File.Delete(path);
             
-            WebClientHelper.SaveImage(url, fullPath);
+                var fileName = Path.GetFileName(path);
+
+                log.Debug($"Deleted file '{fileName}'.");
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred deleting the file '{path}'. {e.Message}";
+                log.Error(message, e);
+            }
+        }
+        
+        private static void DeleteFile(UserSettings settings, FileType fileType)
+        {
+            var fileName = settings.GetFullPath(fileType);
+            DeleteFile(fileName);
+        }
+
+        private static void Save(UserSettings settings, OutputContext context, FileType fileType)
+        {
+            if (fileType == default) return;
+            if (!settings.IsOutputEnabled(fileType)) return;
+
+            var fullPath = settings.GetFullPath(fileType);
+            var fileName = Path.GetFileName(fullPath);
+            var content = GetFileContent(context, fileType);
+
+            if (FileType.Text.HasFlag(fileType))
+            {
+                WebClientHelper.SaveImage(content, fullPath);
+            }
+            else if (FileType.Image.HasFlag(fileType))
+            {
+                File.WriteAllText(fullPath, content);
+            }
+
+            log.Debug($"Saved text '{content}' to '{fileName}'.");
+        }
+        
+        private static IEnumerable<FileType> GetFileTypes()
+        {
+            var ignored = new[] { FileType.None, FileType.Text, FileType.Image };
+            return Enum.GetValues<FileType>().Except(ignored);
+        }
+
+        private static string GetFileContent(OutputContext context, FileType? fileType = null)
+        {
+            return fileType switch
+            {
+                FileType.Song            => context.Song.Name,
+                FileType.Artist          => context.Artist.Name,
+                FileType.Album           => context.Album.Name,
+                FileType.PlaylistName    => context.Playlist.Name,
+                FileType.AlbumArtwork    => context.Album.ImageUrl,
+                FileType.PlaylistArtwork => context.Playlist.ImageUrl,
+                _                        => throw new ArgumentOutOfRangeException(nameof(fileType))
+            };
         }
     }
 }

@@ -9,6 +9,7 @@ using SpotifyNowPlaying.Output;
 
 namespace SpotifyNowPlaying.ViewModels
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class MainWindowViewModel
     {
         private readonly ILog log = LogManager.GetLogger(typeof(MainWindowViewModel));

@@ -1,38 +1,64 @@
-﻿using System.IO;
-using System.Reflection;
+﻿using System;
 using log4net;
-using Newtonsoft.Json;
-using SpotifyNowPlaying.ViewModels;
+using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.Common
 {
-    public static class SettingsHelper
+    public class SettingsHelper
     {
-
         private static readonly ILog log = LogManager.GetLogger(typeof(SettingsHelper));
 
-        private const string DEFAULT_SETTINGS_FILE_NAME = @"user.config";
+        private const string SETTINGS_FILE_NAME = @"user.config";
 
-        private static SettingsViewModel _settings;
-        public static SettingsViewModel Settings => _settings;
-
-        public static void Init()
+        private static readonly object syncLock = new();
+        private static SettingsHelper _instance;
+        
+        protected SettingsHelper()
         {
-            var assemblyLocation = Assembly.GetEntryAssembly().Location;
-            var assemblyDir = Path.GetDirectoryName(assemblyLocation);
+            Init();
+        }
 
-            var configPath = Path.Combine(assemblyDir, DEFAULT_SETTINGS_FILE_NAME);
-
-            var configExists = File.Exists(configPath);
-            if (configExists)
+        public static SettingsHelper Instance
+        {
+            get
             {
-                var configJson = File.ReadAllText(configPath);
-                
-                _settings = SettingsViewModel.Create();
-
-                JsonConvert.PopulateObject(configJson, _settings);
+                if (_instance != null) return _instance;
+                lock (syncLock)
+                {
+                    _instance = new SettingsHelper();
+                }
+                return _instance;
             }
+        }
 
+        public UserSettings CurrentSettings { get; set; }
+
+        public static void Save(UserSettings settings)
+        {
+            IsolatedStorageManager.SaveFile(SETTINGS_FILE_NAME, settings);
+
+            Instance.CurrentSettings = settings;
+        }
+
+        private void Init()
+        {
+            try
+            {
+                var fileExists = IsolatedStorageManager.FileExists(SETTINGS_FILE_NAME);
+                if (!fileExists)
+                {
+                    CurrentSettings = new UserSettings();
+                    return;
+                }
+
+                CurrentSettings = IsolatedStorageManager.ReadFile<UserSettings>(SETTINGS_FILE_NAME);
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred initializing the user settings. {e.Message}";
+                log.Error(message, e);
+                CurrentSettings = new UserSettings();
+            }
         }
 
     }

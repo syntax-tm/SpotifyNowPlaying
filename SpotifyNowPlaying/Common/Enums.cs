@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Runtime.Serialization;
 
 namespace SpotifyNowPlaying.Common
 {
@@ -16,6 +18,20 @@ namespace SpotifyNowPlaying.Common
         public const int LoginCancelled = -2;
         public const int LoginFailed = -1;
         public const int Normal = 0;
+    }
+
+    [Flags]
+    public enum FileType : ushort
+    {
+        None            = 0,
+        Song            = 1,
+        Artist          = 2,
+        Album           = 4,
+        PlaylistName    = 8,
+        AlbumArtwork    = 1024,
+        PlaylistArtwork = 2048,
+        Image           = AlbumArtwork | PlaylistArtwork,
+        Text            = Song | Artist | Album | PlaylistName
     }
 
     public enum FileCategory

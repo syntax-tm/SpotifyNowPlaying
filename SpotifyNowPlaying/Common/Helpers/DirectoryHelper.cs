@@ -7,7 +7,7 @@ namespace SpotifyNowPlaying
 {
     public static class DirectoryHelper
     {
-        public static void EnsureDirectoryExists([NotNull] string path)
+        public static void EnsureExists([NotNull] string path)
         {
             if (string.IsNullOrWhiteSpace(path)) throw new ArgumentNullException(nameof(path));
             if (!IsValidPath(path)) throw new ArgumentException($"Directory path '{path}' is not valid.");

@@ -4,15 +4,14 @@ using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Windows;
 using System.Windows.Data;
-using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace SpotifyNowPlaying.Common.Converters
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     [ValueConversion(typeof(Bitmap), typeof(ImageSource))]
     public class BitmapToImageSourceConverter : IValueConverter
     {
@@ -37,15 +36,6 @@ namespace SpotifyNowPlaying.Common.Converters
             bitmapImage.EndInit();
 
             return bitmapImage;
-
-            //var cbmp = (Bitmap) bmp.Clone();
-            //
-            //var handle = cbmp.GetHbitmap();
-            //try
-            //{
-            //    return Imaging.CreateBitmapSourceFromHBitmap(handle, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-            //}
-            //finally { DeleteObject(handle); }      
         }
  
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -54,6 +44,7 @@ namespace SpotifyNowPlaying.Common.Converters
         }
     }
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class BitmapToImageSourceConverterExtension : MarkupExtension
     {
         public IValueConverter ItemConverter { get; set; }

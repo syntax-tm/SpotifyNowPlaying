@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.RightsManagement;
-using System.Text;
-using System.Threading.Tasks;
+using System.Windows;
 using DevExpress.Mvvm;
 using DevExpress.Mvvm.POCO;
 using log4net;
-using Newtonsoft.Json;
 using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Config;
 
@@ -30,7 +25,7 @@ namespace SpotifyNowPlaying.ViewModels
 
         protected SettingsViewModel()
         {
-
+            Settings = SettingsHelper.Instance.CurrentSettings;
         }
 
         public static SettingsViewModel Create()
@@ -40,9 +35,17 @@ namespace SpotifyNowPlaying.ViewModels
 
         public void Save()
         {
-            IsolatedStorageManager.SaveFile(SETTINGS_FILE_NAME, Settings);
+            try
+            {
+                SettingsHelper.Save(Settings);
 
-            _backupSettings = Settings;
+                _backupSettings = Settings;
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred attempting to save user settings. {e.Message}";
+                log.Error(message, e);
+            }
         }
 
         public void Load()
@@ -59,7 +62,12 @@ namespace SpotifyNowPlaying.ViewModels
 
         public void Default()
         {
+            var message = $"Are you sure you want to restore the default settings?";
+            var response = MessageBox.Show(message, "Confirm Restore Default", MessageBoxButton.YesNo, MessageBoxImage.Question);
 
+            if (response != MessageBoxResult.Yes) return;
+
+            Settings = _backupSettings;
         }
 
         public void Import()
@@ -74,7 +82,7 @@ namespace SpotifyNowPlaying.ViewModels
 
         public void Exit()
         {
-
+            CurrentWindow?.Close();
         }
 
     }

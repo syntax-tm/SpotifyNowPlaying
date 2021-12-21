@@ -8,6 +8,7 @@ using System.Windows.Media;
 
 namespace SpotifyNowPlaying.Common.Converters
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     [ValueConversion(typeof(string), typeof(FontFamily))]
     public class StringToFontFamilyConverter : IValueConverter
     {
@@ -35,6 +36,7 @@ namespace SpotifyNowPlaying.Common.Converters
         }
     }
 
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public class StringToFontFamilyConverterExtension : MarkupExtension
     {
         public IValueConverter ItemConverter { get; set; }

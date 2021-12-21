@@ -7,6 +7,7 @@ using Image = System.Drawing.Image;
 
 namespace SpotifyNowPlaying.Common
 {
+    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public static class WebClientHelper
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(WebClientHelper));

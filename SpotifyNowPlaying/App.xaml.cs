@@ -1,13 +1,7 @@
 ﻿using System;
-using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Windows;
-using CefSharp;
-using CefSharp.Wpf;
 using log4net;
 using SpotifyNowPlaying.Common;
-using SpotifyNowPlaying.Config;
 using SpotifyNowPlaying.Output;
 using SpotifyNowPlaying.Views;
 
@@ -22,45 +16,37 @@ namespace SpotifyNowPlaying
             // configure the logging
             LoggingHelper.Configure();
 
-            // add Custom assembly resolver
-            AppDomain.CurrentDomain.AssemblyResolve += Resolver;
-
-            // any CefSharp references have to be in another method with NonInlining
-            // attribute so the assembly resolver has time to do it's thing.
-            InitializeCefSharp();
-        }
-
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void InitializeCefSharp()
-        {
-            var settings = new CefSettings();
-
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"CefSharp\Cache");
-
-            settings.CachePath = path;
-            
-            Cef.Initialize(settings, performDependencyCheck: true, browserProcessHandler: null);
+            // configure the isolated storage
+            IsolatedStorageManager.Init();
         }
         
-        private async void App_OnStartup(object sender, StartupEventArgs e)
+        private async void App_OnStartup(object sender, StartupEventArgs args)
         {
-            await SpotifyClientHelper.Init();
+            try
+            {
+                await SpotifyClientHelper.Init();
             
-            MainWindow = new MainWindow();
-            MainWindow.Show();
+                MainWindow = new MainWindow();
+                MainWindow.Closed += WindowOnClosed;
 
-            var window = new MainWindow();
+                ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-            window.Closed += WindowOnClosed;
-
-            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                MainWindow.Show();
+            }
+            catch (Exception e)
+            {
+                var message = $"An error occurred during application startup. {e.Message}";
+                log.Fatal(message, e);
+                Environment.Exit(AppExitCode.UnhandledException);
+            }
         }
 
         private void WindowOnClosed(object sender, EventArgs e)
         {
             Environment.Exit(0);
         }
-
+        
+        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
         private void App_OnExit(object sender, ExitEventArgs args)
         {
             try
@@ -69,29 +55,10 @@ namespace SpotifyNowPlaying
             }
             catch (Exception e)
             {
-                log.Error($"An error occurred during application exit. {e.Message}", e);
+                log.Fatal($"An error occurred during application exit. {e.Message}", e);
 
                 Environment.Exit(AppExitCode.UnhandledException);
             }
-        }
-        
-        private static Assembly Resolver(object sender, ResolveEventArgs args)
-        {
-            // will attempt to load missing assembly from either x86 or x64 subdir
-            // required by CefSharp to load the unmanaged dependencies when running using AnyCPU
-            if (args.Name.StartsWith("CefSharp.Core.Runtime"))
-            {
-                var assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
-                var archSpecificPath = Path.Combine(AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-                    Environment.Is64BitProcess ? "x64" : "x86",
-                    assemblyName);
-
-                return File.Exists(archSpecificPath)
-                    ? Assembly.LoadFile(archSpecificPath)
-                    : null;
-            }
-
-            return null;
         }
     }
 }
