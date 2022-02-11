@@ -3,11 +3,9 @@ using System.IO;
 using System.Net;
 using System.Windows.Media.Imaging;
 using log4net;
-using Image = System.Drawing.Image;
 
 namespace SpotifyNowPlaying.Common
 {
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public static class WebClientHelper
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(WebClientHelper));
@@ -49,11 +47,8 @@ namespace SpotifyNowPlaying.Common
                 using var wc = new WebClient();
 
                 var imageData = wc.DownloadData(url);
-
-                using var ms = new MemoryStream(imageData);
-                using var bmp = Image.FromStream(ms);
-
-                bmp.Save(fileName);
+                
+                File.WriteAllBytes(fileName, imageData);
             }
             catch (Exception e)
             {

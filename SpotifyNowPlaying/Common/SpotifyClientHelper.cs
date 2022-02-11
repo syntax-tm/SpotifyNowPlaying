@@ -30,24 +30,24 @@ namespace SpotifyNowPlaying.Common
         {
             (_verifier, _challenge) = PKCEUtil.GenerateCodes(120);
 
-            _server = new EmbedIOAuthServer(new Uri(REDIRECT_URL), 5000);
+            _server = new (new (REDIRECT_URL), 5000);
             await _server.Start();
             
             _server.AuthorizationCodeReceived += OnAuthReceived;
             _server.ErrorReceived += OnErrorReceived;
 
-            var request = new LoginRequest(new Uri(REDIRECT_URL), CLIENT_ID, LoginRequest.ResponseType.Code)
+            var request = new LoginRequest(new (REDIRECT_URL), CLIENT_ID, LoginRequest.ResponseType.Code)
             {
                 CodeChallengeMethod = CODE_CHALLENGE_METHOD,
                 CodeChallenge = _challenge,
                 Scope = new [] { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserReadRecentlyPlayed }
             };
             
-            _tcs = new TaskCompletionSource<bool>();
+            _tcs = new ();
             
             BrowserUtil.Open(request.ToUri());
 
-            await _tcs.Task;
+            await _tcs.Task.ConfigureAwait(false);
         }
         
         private static async Task OnAuthReceived(object sender, AuthorizationCodeResponse response)
@@ -99,7 +99,7 @@ namespace SpotifyNowPlaying.Common
             try
             {
                 var initialResponse = await new OAuthClient().RequestToken(
-                    new PKCETokenRequest(CLIENT_ID, response.Code, new Uri(REDIRECT_URL), _verifier)
+                    new PKCETokenRequest(CLIENT_ID, response.Code, new (REDIRECT_URL), _verifier)
                 );
                 
                 var authenticator = new PKCEAuthenticator(CLIENT_ID, initialResponse);
@@ -107,7 +107,7 @@ namespace SpotifyNowPlaying.Common
                 var config = SpotifyClientConfig.CreateDefault()
                     .WithAuthenticator(authenticator);
 
-                _client = new SpotifyClient(config);
+                _client = new (config);
 
                 var authConfig = new AuthConfig
                 {

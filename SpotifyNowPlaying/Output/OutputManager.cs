@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Windows.Media.Imaging;
 using log4net;
 using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.Output
 {
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public static class OutputManager
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(OutputManager));
@@ -20,18 +22,19 @@ namespace SpotifyNowPlaying.Output
             try
             {
                 var settings = SettingsHelper.Instance.CurrentSettings;
-                var fileTypes = Enum.GetValues<FileType>();
+                var ignored = new[] { FileType.None, FileType.Text, FileType.Image };
+                var fileTypes = Enum.GetValues<FileType>().Except(ignored);
 
                 foreach (var fileType in fileTypes)
                 {
                     DeleteFile(settings, fileType);
                 }
             
-                log.Info("Finished cleaning up output files.");
+                log.Info(@"Finished cleaning up output files.");
             }
             catch (Exception e)
             {
-                var message = $"An error occurred during cleanup. {e.Message}";
+                var message = $@"An error occurred during cleanup. {e.Message}";
                 log.Error(message, e);
             }
         }
@@ -40,7 +43,7 @@ namespace SpotifyNowPlaying.Output
         {
             try
             {
-                if (_previousState == null || _previousState.Equals(state))
+                if (state.Equals(_previousState))
                 {
                     return;
                 }
@@ -48,7 +51,7 @@ namespace SpotifyNowPlaying.Output
                 var settings = SettingsHelper.Instance.CurrentSettings;
                 var context = new OutputContext(state);
 
-                log.Info($"Outputting playback information for {state}...");
+                log.Info($@"Outputting playback information for {state}...");
                 
                 var ignored = new[] { FileType.None, FileType.Text, FileType.Image };
                 var fileTypes = Enum.GetValues<FileType>().Except(ignored);
@@ -57,13 +60,13 @@ namespace SpotifyNowPlaying.Output
                     Save(settings, context, fileType);
                 }
             
-                log.Info($"Finished outputting playback information for {state}.");
+                log.Info($@"Finished outputting playback information for {state}.");
 
                 _previousState = state;
             }
             catch (Exception e)
             {
-                var message = $"An error occurred processing the output for state {state}. {e.Message}";
+                var message = $@"An error occurred processing the output for state {state}. {e.Message}";
                 log.Error(message, e);
             }
         }
@@ -91,6 +94,15 @@ namespace SpotifyNowPlaying.Output
         {
             var fileName = settings.GetFullPath(fileType);
             DeleteFile(fileName);
+
+            if (fileType.HasFlag(FileType.Text))
+            {
+                File.WriteAllText(fileName, string.Empty);
+            }
+            else if (fileType.HasFlag(FileType.Image))
+            {
+                new Bitmap(640, 640).Save(fileName, ImageFormat.Bmp);
+            }
         }
 
         private static void Save(UserSettings settings, OutputContext context, FileType fileType)
@@ -102,16 +114,18 @@ namespace SpotifyNowPlaying.Output
             var fileName = Path.GetFileName(fullPath);
             var content = GetFileContent(context, fileType);
 
+            DirectoryHelper.EnsureExists(settings.OutputDirectory);
+
             if (FileType.Text.HasFlag(fileType))
-            {
-                WebClientHelper.SaveImage(content, fullPath);
-            }
-            else if (FileType.Image.HasFlag(fileType))
             {
                 File.WriteAllText(fullPath, content);
             }
+            else if (FileType.Image.HasFlag(fileType))
+            {
+                WebClientHelper.SaveImage(content, fullPath);
+            }
 
-            log.Debug($"Saved text '{content}' to '{fileName}'.");
+            log.Debug($@"Saved text '{content}' to '{fileName}'.");
         }
         
         private static IEnumerable<FileType> GetFileTypes()

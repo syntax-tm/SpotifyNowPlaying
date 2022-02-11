@@ -11,26 +11,23 @@ namespace SpotifyNowPlaying
     {
         private static readonly ILog log = LogManager.GetLogger(typeof(App));
         
-        public App()
+        protected override async void OnStartup(StartupEventArgs args)
         {
-            // configure the logging
-            LoggingHelper.Configure();
+            base.OnStartup(args);
 
-            // configure the isolated storage
-            IsolatedStorageManager.Init();
-        }
-        
-        private async void App_OnStartup(object sender, StartupEventArgs args)
-        {
             try
             {
+                // configure the logging
+                LoggingHelper.Configure();
+
+                // configure the isolated storage
+                IsolatedStorageManager.Init();
+
                 await SpotifyClientHelper.Init();
             
                 MainWindow = new MainWindow();
                 MainWindow.Closed += WindowOnClosed;
-
-                ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
+                
                 MainWindow.Show();
             }
             catch (Exception e)
@@ -43,11 +40,10 @@ namespace SpotifyNowPlaying
 
         private void WindowOnClosed(object sender, EventArgs e)
         {
-            Environment.Exit(0);
+            Current.Shutdown();
         }
-        
-        [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-        private void App_OnExit(object sender, ExitEventArgs args)
+
+        protected override void OnExit(ExitEventArgs args)
         {
             try
             {
