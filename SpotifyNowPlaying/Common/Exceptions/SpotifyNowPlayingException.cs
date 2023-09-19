@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     [Serializable]
     public class SpotifyNowPlayingException : Exception

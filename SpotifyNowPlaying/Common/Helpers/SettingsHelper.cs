@@ -2,7 +2,7 @@
 using log4net;
 using SpotifyNowPlaying.Config;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public class SettingsHelper
     {

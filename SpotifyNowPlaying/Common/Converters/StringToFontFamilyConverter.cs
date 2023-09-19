@@ -6,7 +6,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace SpotifyNowPlaying.Common.Converters
+namespace SpotifyNowPlaying.Converters
 {
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     [ValueConversion(typeof(string), typeof(FontFamily))]

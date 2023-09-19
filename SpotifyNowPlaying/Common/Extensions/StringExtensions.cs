@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Linq;
 using JetBrains.Annotations;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public static class StringExtensions
     {

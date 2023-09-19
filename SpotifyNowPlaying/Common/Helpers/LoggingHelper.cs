@@ -7,7 +7,7 @@ using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public static class LoggingHelper
     {

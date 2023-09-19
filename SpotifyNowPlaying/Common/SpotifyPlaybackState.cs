@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public class SpotifyPlaybackState : IEquatable<SpotifyPlaybackState>
     {
@@ -25,7 +25,7 @@ namespace SpotifyNowPlaying.Common
         public static async Task<SpotifyPlaybackState> Create(CurrentlyPlaying current)
         {
             if (current == null) return new SpotifyPlaybackState();
-            if (!current.IsPlaying) return new SpotifyPlaybackState();
+            if (!current.IsPlaying) return new ();
 
             var state = new SpotifyPlaybackState();
             

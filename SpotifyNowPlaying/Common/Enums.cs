@@ -1,8 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.Serialization;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     [DefaultValue(Text)]
     public enum OutputFileType

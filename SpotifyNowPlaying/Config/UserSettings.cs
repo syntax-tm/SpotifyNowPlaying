@@ -2,7 +2,6 @@
 using System.IO;
 using System.Reflection;
 using DevExpress.Mvvm;
-using SpotifyNowPlaying.Common;
 
 namespace SpotifyNowPlaying.Config
 {

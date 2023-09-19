@@ -33,9 +33,7 @@ namespace SpotifyNowPlaying
                 result = Path.GetFullPath(path);
                 status = true;
             }
-            catch (ArgumentException) { }
             catch (SecurityException) { }
-            catch (NotSupportedException) { }
             catch (PathTooLongException) { }
 
             return status;

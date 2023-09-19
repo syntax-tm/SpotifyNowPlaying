@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json;
 using SpotifyAPI.Web;
-using SpotifyNowPlaying.Common;
 
 namespace SpotifyNowPlaying.Output
 {
@@ -20,10 +19,10 @@ namespace SpotifyNowPlaying.Output
 
         public OutputContext()
         {
-            Song = new SongContext();
-            Artist = new ArtistContext();
-            Album = new AlbumContext();
-            Playlist = new PlaylistContext();
+            Song = new ();
+            Artist = new ();
+            Album = new ();
+            Playlist = new ();
         }
 
         public OutputContext([JetBrains.Annotations.NotNull] SpotifyPlaybackState state)
@@ -32,10 +31,10 @@ namespace SpotifyNowPlaying.Output
 
             if (state.Track is null)
             {
-                Song = new SongContext();
-                Artist = new ArtistContext();
-                Album = new AlbumContext();
-                Playlist = new PlaylistContext();
+                Song = new ();
+                Artist = new ();
+                Album = new ();
+                Playlist = new ();
 
                 return;
             }
@@ -51,7 +50,7 @@ namespace SpotifyNowPlaying.Output
 
             if (state.Playlist == null)
             {
-                Playlist = new PlaylistContext();
+                Playlist = new ();
             }
             else
             {

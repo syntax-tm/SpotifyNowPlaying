@@ -9,7 +9,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace SpotifyNowPlaying.Common.Converters
+namespace SpotifyNowPlaying.Converters
 {
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     [ValueConversion(typeof(Bitmap), typeof(ImageSource))]

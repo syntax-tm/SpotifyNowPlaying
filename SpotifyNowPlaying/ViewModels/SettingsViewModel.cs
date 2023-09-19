@@ -3,7 +3,6 @@ using System.Windows;
 using DevExpress.Mvvm;
 using DevExpress.Mvvm.POCO;
 using log4net;
-using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.ViewModels

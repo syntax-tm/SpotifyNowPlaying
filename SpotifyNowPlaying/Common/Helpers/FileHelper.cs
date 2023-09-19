@@ -2,7 +2,7 @@
 using System.IO;
 using log4net;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public static class FileHelper
     {

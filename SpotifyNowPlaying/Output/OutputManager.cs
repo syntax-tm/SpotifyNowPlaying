@@ -6,7 +6,6 @@ using System.IO;
 using System.Linq;
 using System.Windows.Media.Imaging;
 using log4net;
-using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Config;
 
 namespace SpotifyNowPlaying.Output

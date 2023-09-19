@@ -4,7 +4,7 @@ using System.IO.IsolatedStorage;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public static class IsolatedStorageManager
     {
@@ -133,7 +133,7 @@ namespace SpotifyNowPlaying.Common
 
             if (store.FileExists(path))
             {
-                if (!overwrite) throw new ArgumentException($"File '{path}' exists", nameof(path));
+                if (!overwrite) throw new ArgumentException($"File '{path}' exists.", nameof(path));
 
                 store.DeleteFile(path);
             }
@@ -155,7 +155,7 @@ namespace SpotifyNowPlaying.Common
 
             if (!overwrite && store.FileExists(path))
             {
-                throw new ArgumentException($"File '{path}' exists", nameof(path));
+                throw new ArgumentException($"File '{path}' exists.", nameof(path));
             }
 
             using var stream = store.CreateFile(path);
@@ -173,11 +173,13 @@ namespace SpotifyNowPlaying.Common
 
             if (!overwrite && store.FileExists(path))
             {
-                throw new ArgumentException($"File '{path}' exists", nameof(path));
+                throw new ArgumentException($"File '{path}' exists.", nameof(path));
             }
 
             await using var stream = store.CreateFile(path);
             await using var sw = new StreamWriter(stream);
+            
+            stream.Seek(0, SeekOrigin.End);
 
             await sw.WriteLineAsync(contents);
             await sw.FlushAsync();
@@ -191,16 +193,16 @@ namespace SpotifyNowPlaying.Common
 
             if (store.FileExists(path))
             {
-                if (!overwrite) throw new ArgumentException($"File '{path}' exists", nameof(path));
+                if (!overwrite) throw new ArgumentException($"File '{path}' exists.", nameof(path));
 
                 store.DeleteFile(path);
             }
 
             using var stream = store.CreateFile(path);
-            using var sw = new StreamWriter(stream);
 
-            sw.Write(contents);
-            sw.Flush();
+            stream.Seek(0, SeekOrigin.End);
+
+            stream.Write(contents);
         }
         
         public static async Task SaveFileAsync(string path, byte[] contents, FileCategory category = FileCategory.Default, bool overwrite = true)
@@ -211,13 +213,14 @@ namespace SpotifyNowPlaying.Common
 
             if (!overwrite && store.FileExists(path))
             {
-                throw new ArgumentException($"File '{path}' exists", nameof(path));
+                throw new ArgumentException($"File '{path}' exists.", nameof(path));
             }
 
             await using var stream = store.CreateFile(path);
-            await using var sw = new StreamWriter(stream);
 
-            sw.Write(contents);
+            stream.Seek(0, SeekOrigin.End);
+
+            await stream.WriteAsync(contents);
         }
 
         public static IsolatedStorageFile GetStore()

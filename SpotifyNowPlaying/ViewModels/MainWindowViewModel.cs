@@ -4,7 +4,6 @@ using System.Threading;
 using DevExpress.Mvvm.POCO;
 using log4net;
 using SpotifyAPI.Web;
-using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Output;
 
 namespace SpotifyNowPlaying.ViewModels
@@ -52,6 +51,9 @@ namespace SpotifyNowPlaying.ViewModels
                 {
                     var request = new PlayerCurrentlyPlayingRequest();
                     var currentlyPlaying = await SpotifyClientHelper.Client.Player.GetCurrentlyPlaying(request);
+
+                    var queue = await SpotifyClientHelper.Client.Player.GetQueue();
+                    
 
                     var state = await SpotifyPlaybackState.Create(currentlyPlaying);
 

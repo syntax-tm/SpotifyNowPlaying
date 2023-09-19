@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Windows;
 using log4net;
-using SpotifyNowPlaying.Common;
 using SpotifyNowPlaying.Output;
 using SpotifyNowPlaying.Views;
 

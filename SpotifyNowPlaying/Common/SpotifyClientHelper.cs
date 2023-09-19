@@ -7,7 +7,7 @@ using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using SpotifyNowPlaying.Config;
 
-namespace SpotifyNowPlaying.Common
+namespace SpotifyNowPlaying
 {
     public static class SpotifyClientHelper
     {
