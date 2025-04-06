@@ -61,7 +61,7 @@ public partial class App
             var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var downloadsPath = Path.Join(userProfile, "Downloads");
 
-            File.WriteAllText(Path.Join(downloadsPath, @"spotify_playlists_with_images.json"), json, new UTF8Encoding(false));
+            File.WriteAllText(Path.Join(downloadsPath, @"playlists.json"), json, new UTF8Encoding(false));
 
             MainWindow = new MainWindow();
             MainWindow.Closed += WindowOnClosed;
