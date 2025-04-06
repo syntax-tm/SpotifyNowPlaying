@@ -9,59 +9,58 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-namespace SpotifyNowPlaying.Converters
+namespace SpotifyNowPlaying.Converters;
+
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+[ValueConversion(typeof(Bitmap), typeof(ImageSource))]
+public class BitmapToImageSourceConverter : IValueConverter
 {
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    [ValueConversion(typeof(Bitmap), typeof(ImageSource))]
-    public class BitmapToImageSourceConverter : IValueConverter
+    [DllImport("gdi32.dll")]
+    private static extern bool DeleteObject(IntPtr hObject);
+
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        [DllImport("gdi32.dll")]
-        private static extern bool DeleteObject(IntPtr hObject);
+        if (!(value is Image bmp))
+            return null;
+        
+        using var ms = new MemoryStream();
 
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (!(value is Image bmp))
-                return null;
-            
-            using var ms = new MemoryStream();
+        bmp.Save(ms, ImageFormat.Jpeg);
+        ms.Seek(0, SeekOrigin.Begin);
 
-            bmp.Save(ms, ImageFormat.Jpeg);
-            ms.Seek(0, SeekOrigin.Begin);
+        var bitmapImage = new BitmapImage();
 
-            var bitmapImage = new BitmapImage();
+        bitmapImage.BeginInit();
+        bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+        bitmapImage.StreamSource = ms;
+        bitmapImage.EndInit();
 
-            bitmapImage.BeginInit();
-            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-            bitmapImage.StreamSource = ms;
-            bitmapImage.EndInit();
-
-            return bitmapImage;
-        }
- 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
-        }
+        return bitmapImage;
     }
 
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public class BitmapToImageSourceConverterExtension : MarkupExtension
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public IValueConverter ItemConverter { get; set; }
+        throw new NotImplementedException();
+    }
+}
 
-        public BitmapToImageSourceConverterExtension()
-        {
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+public class BitmapToImageSourceConverterExtension : MarkupExtension
+{
+    public IValueConverter ItemConverter { get; set; }
 
-        }
+    public BitmapToImageSourceConverterExtension()
+    {
 
-        public BitmapToImageSourceConverterExtension(IValueConverter itemConverter)
-        {
-            ItemConverter = itemConverter;
-        }
+    }
 
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            return new BitmapToImageSourceConverter();
-        }
+    public BitmapToImageSourceConverterExtension(IValueConverter itemConverter)
+    {
+        ItemConverter = itemConverter;
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return new BitmapToImageSourceConverter();
     }
 }

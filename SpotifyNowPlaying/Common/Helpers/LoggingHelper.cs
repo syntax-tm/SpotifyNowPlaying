@@ -7,67 +7,66 @@ using log4net.Core;
 using log4net.Layout;
 using log4net.Repository.Hierarchy;
 
-namespace SpotifyNowPlaying
+namespace SpotifyNowPlaying;
+
+public static class LoggingHelper
 {
-    public static class LoggingHelper
+    private static readonly ILog log = LogManager.GetLogger(typeof(LoggingHelper));
+
+    public static void Configure()
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(LoggingHelper));
+        var hierarchy = (Hierarchy) LogManager.GetRepository();
+        var logger = hierarchy.LoggerFactory.CreateLogger(hierarchy, $"{nameof(SpotifyNowPlaying)}Repository");
+        logger.Hierarchy = hierarchy;
 
-        public static void Configure()
+        var debugOut = new FormattedDebugAppender
         {
-            var hierarchy = (Hierarchy) LogManager.GetRepository();
-            var logger = hierarchy.LoggerFactory.CreateLogger(hierarchy, $"{nameof(SpotifyNowPlaying)}Repository");
-            logger.Hierarchy = hierarchy;
-
-            var debugOut = new FormattedDebugAppender
-            {
-                Layout = GetLayout()
-            };
-            
-            debugOut.ActivateOptions();
-            
-            hierarchy.Root.AddAppender(debugOut);
-
-            var level = Debugger.IsAttached
-                ? Level.Debug
-                : Level.Info;
-
-            hierarchy.Threshold = level;
-            logger.Level = level;
-
-            BasicConfigurator.Configure(hierarchy);
-
-            log.Debug("Logging configured.");
-        }
-
-        private static ILayout GetLayout()
-        {
-            var layout = new PatternLayout("%message%newline");
-            layout.ActivateOptions();
-            return layout;
-        }
+            Layout = GetLayout()
+        };
         
-        [SuppressMessage("ReSharper", "ConditionalInvocation")]
-        private class FormattedDebugAppender : DebugAppender
+        debugOut.ActivateOptions();
+        
+        hierarchy.Root.AddAppender(debugOut);
+
+        var level = Debugger.IsAttached
+            ? Level.Debug
+            : Level.Info;
+
+        hierarchy.Threshold = level;
+        logger.Level = level;
+
+        BasicConfigurator.Configure(hierarchy);
+
+        log.Debug("Logging configured.");
+    }
+
+    private static ILayout GetLayout()
+    {
+        var layout = new PatternLayout("%message%newline");
+        layout.ActivateOptions();
+        return layout;
+    }
+    
+    [SuppressMessage("ReSharper", "ConditionalInvocation")]
+    private class FormattedDebugAppender : DebugAppender
+    {
+        private static bool _autoFlushSet;
+
+        protected override void Append(LoggingEvent loggingEvent)
         {
-            private static bool _autoFlushSet;
+            var message = RenderLoggingEvent(loggingEvent);
+            if (string.IsNullOrWhiteSpace(message)) return;
+            
+            Debug.Write(message);
 
-            protected override void Append(LoggingEvent loggingEvent)
+            if (!ImmediateFlush) return;
+            if (!_autoFlushSet)
             {
-                var message = RenderLoggingEvent(loggingEvent);
-                if (string.IsNullOrWhiteSpace(message)) return;
-                
-                Debug.Write(message);
-
-                if (!ImmediateFlush) return;
-                if (!_autoFlushSet)
-                {
-                    Debug.AutoFlush = true;
-                    _autoFlushSet = true;
-                }
-                
-                Debug.Flush();
+                Debug.AutoFlush = true;
+                _autoFlushSet = true;
             }
+            
+            Debug.Flush();
         }
     }
 }

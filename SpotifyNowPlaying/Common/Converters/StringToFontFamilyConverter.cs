@@ -6,54 +6,53 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 
-namespace SpotifyNowPlaying.Converters
+namespace SpotifyNowPlaying.Converters;
+
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+[ValueConversion(typeof(string), typeof(FontFamily))]
+public class StringToFontFamilyConverter : IValueConverter
 {
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    [ValueConversion(typeof(string), typeof(FontFamily))]
-    public class StringToFontFamilyConverter : IValueConverter
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        if (value is not string fontName)
         {
-            if (value is not string fontName)
-            {
-                throw new InvalidCastException($"{nameof(value)} must by type {typeof(string)}.");
-            }
-
-            var fonts = new InstalledFontCollection();
-            var font = fonts.Families.FirstOrDefault(f => f.Name.EqualsIgnoreCase(fontName));
-
-            return font;
+            throw new InvalidCastException($"{nameof(value)} must by type {typeof(string)}.");
         }
- 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is not FontFamily fontFamily)
-            {
-                throw new InvalidCastException($"{nameof(value)} must by type {typeof(FontFamily)}.");
-            }
 
-            return fontFamily.Source;
-        }
+        var fonts = new InstalledFontCollection();
+        var font = fonts.Families.FirstOrDefault(f => f.Name.EqualsIgnoreCase(fontName));
+
+        return font;
     }
 
-    [System.Runtime.Versioning.SupportedOSPlatform("windows")]
-    public class StringToFontFamilyConverterExtension : MarkupExtension
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        public IValueConverter ItemConverter { get; set; }
-
-        public StringToFontFamilyConverterExtension()
+        if (value is not FontFamily fontFamily)
         {
-
+            throw new InvalidCastException($"{nameof(value)} must by type {typeof(FontFamily)}.");
         }
 
-        public StringToFontFamilyConverterExtension(IValueConverter itemConverter)
-        {
-            ItemConverter = itemConverter;
-        }
+        return fontFamily.Source;
+    }
+}
 
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            return new StringToFontFamilyConverter();
-        }
+[System.Runtime.Versioning.SupportedOSPlatform("windows")]
+public class StringToFontFamilyConverterExtension : MarkupExtension
+{
+    public IValueConverter ItemConverter { get; set; }
+
+    public StringToFontFamilyConverterExtension()
+    {
+
+    }
+
+    public StringToFontFamilyConverterExtension(IValueConverter itemConverter)
+    {
+        ItemConverter = itemConverter;
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return new StringToFontFamilyConverter();
     }
 }

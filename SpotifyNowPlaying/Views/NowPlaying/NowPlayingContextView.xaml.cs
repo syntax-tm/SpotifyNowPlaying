@@ -1,10 +1,9 @@
-﻿namespace SpotifyNowPlaying.Views.NowPlaying
+﻿namespace SpotifyNowPlaying.Views.NowPlaying;
+
+public partial class NowPlayingContextView
 {
-    public partial class NowPlayingContextView
+    public NowPlayingContextView()
     {
-        public NowPlayingContextView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

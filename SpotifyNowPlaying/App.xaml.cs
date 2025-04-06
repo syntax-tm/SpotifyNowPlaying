@@ -1,59 +1,63 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Runtime.Versioning;
 using System.Windows;
 using log4net;
+using Newtonsoft.Json;
+using SpotifyAPI.Web;
 using SpotifyNowPlaying.Output;
 using SpotifyNowPlaying.Views;
 
-namespace SpotifyNowPlaying
+namespace SpotifyNowPlaying;
+
+public partial class App
 {
-    public partial class App
+    private static readonly ILog log = LogManager.GetLogger(typeof(App));
+    
+    protected override async void OnStartup(StartupEventArgs args)
     {
-        private static readonly ILog log = LogManager.GetLogger(typeof(App));
-        
-        protected override async void OnStartup(StartupEventArgs args)
+        base.OnStartup(args);
+
+        try
         {
-            base.OnStartup(args);
+            // configure the logging
+            LoggingHelper.Configure();
 
-            try
-            {
-                // configure the logging
-                LoggingHelper.Configure();
+            // configure the isolated storage
+            IsolatedStorageManager.Init();
 
-                // configure the isolated storage
-                IsolatedStorageManager.Init();
-
-                await SpotifyClientHelper.Init();
+            await SpotifyClientHelper.Init();
             
-                MainWindow = new MainWindow();
-                MainWindow.Closed += WindowOnClosed;
-                
-                MainWindow.Show();
-            }
-            catch (Exception e)
-            {
-                var message = $"An error occurred during application startup. {e.Message}";
-                log.Fatal(message, e);
-                Environment.Exit(AppExitCode.UnhandledException);
-            }
+            MainWindow = new MainWindow();
+            MainWindow.Closed += WindowOnClosed;
+            
+            MainWindow.Show();
         }
-
-        private void WindowOnClosed(object sender, EventArgs e)
+        catch (Exception e)
         {
-            Current.Shutdown();
+            var message = $"An error occurred during application startup. {e.Message}";
+            log.Fatal(message, e);
+            Environment.Exit(AppExitCode.UnhandledException);
         }
+    }
 
-        protected override void OnExit(ExitEventArgs args)
+    private void WindowOnClosed(object sender, EventArgs e)
+    {
+        Current.Shutdown();
+    }
+    
+    [SupportedOSPlatform(@"windows")]
+    protected override void OnExit(ExitEventArgs args)
+    {
+        try
         {
-            try
-            {
-                OutputManager.Cleanup();
-            }
-            catch (Exception e)
-            {
-                log.Fatal($"An error occurred during application exit. {e.Message}", e);
+            OutputManager.Cleanup();
+        }
+        catch (Exception e)
+        {
+            log.Fatal($"An error occurred during application exit. {e.Message}", e);
 
-                Environment.Exit(AppExitCode.UnhandledException);
-            }
+            Environment.Exit(AppExitCode.UnhandledException);
         }
     }
 }

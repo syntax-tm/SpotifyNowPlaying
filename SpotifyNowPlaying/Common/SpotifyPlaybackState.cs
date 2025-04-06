@@ -3,73 +3,72 @@ using System.Linq;
 using System.Threading.Tasks;
 using SpotifyAPI.Web;
 
-namespace SpotifyNowPlaying
+namespace SpotifyNowPlaying;
+
+public class SpotifyPlaybackState : IEquatable<SpotifyPlaybackState>
 {
-    public class SpotifyPlaybackState : IEquatable<SpotifyPlaybackState>
+    public string Id => Track?.Id ?? string.Empty;
+    public string PlaylistId => Playlist?.Id ?? string.Empty;
+
+    public bool IsPlaying => Track != null;
+    public bool IsStopped => !IsPlaying;
+    public bool HasPlaylist => Playlist != null;
+
+    public FullTrack Track { get; private set; }
+    public FullPlaylist Playlist { get; private set; }
+
+    protected SpotifyPlaybackState()
     {
-        public string Id => Track?.Id ?? string.Empty;
-        public string PlaylistId => Playlist?.Id ?? string.Empty;
 
-        public bool IsPlaying => Track != null;
-        public bool IsStopped => !IsPlaying;
-        public bool HasPlaylist => Playlist != null;
+    }
+    
+    public static async Task<SpotifyPlaybackState> Create(CurrentlyPlaying current)
+    {
+        if (current == null) return new SpotifyPlaybackState();
+        if (!current.IsPlaying) return new ();
 
-        public FullTrack Track { get; private set; }
-        public FullPlaylist Playlist { get; private set; }
-
-        protected SpotifyPlaybackState()
-        {
-
-        }
+        var state = new SpotifyPlaybackState();
         
-        public static async Task<SpotifyPlaybackState> Create(CurrentlyPlaying current)
+        if (current.Item is FullTrack track)
         {
-            if (current == null) return new SpotifyPlaybackState();
-            if (!current.IsPlaying) return new ();
+            state.Track = track;
+        }
 
-            var state = new SpotifyPlaybackState();
+        if (current.Context?.Type == "playlist")
+        {
+            var playlistId = current.Context.Href.Split('/').Last();
+            var playlist = await SpotifyClientHelper.Client.Playlists.Get(playlistId);
             
-            if (current.Item is FullTrack track)
-            {
-                state.Track = track;
-            }
-
-            if (current.Context?.Type == "playlist")
-            {
-                var playlistId = current.Context.Href.Split('/').Last();
-                var playlist = await SpotifyClientHelper.Client.Playlists.Get(playlistId);
-                
-                state.Playlist = playlist;
-            }
-
-            return state;
+            state.Playlist = playlist;
         }
 
-        public override bool Equals(object obj)
+        return state;
+    }
+
+    public override bool Equals(object obj)
+    {
+        if (obj is SpotifyPlaybackState otherState)
         {
-            if (obj is SpotifyPlaybackState otherState)
-            {
-                return Equals(otherState);
-            }
-            return false;
+            return Equals(otherState);
         }
+        return false;
+    }
 
-        public override string ToString()
-        {
-            return $"{Id}:{PlaylistId}";
-        }
+    public override string ToString()
+    {
+        return $"{Id}:{PlaylistId}";
+    }
 
-        public override int GetHashCode()
-        {
-            return ToString().GetHashCode();
-        }
+    public override int GetHashCode()
+    {
+        return ToString().GetHashCode();
+    }
 
-        public bool Equals(SpotifyPlaybackState other)
-        {
-            if (ReferenceEquals(this, other)) return true;
-            if (other == null) return false;
+    public bool Equals(SpotifyPlaybackState other)
+    {
+        if (ReferenceEquals(this, other)) return true;
+        if (other == null) return false;
 
-            return GetHashCode() == other.GetHashCode();
-        }
+        return GetHashCode() == other.GetHashCode();
     }
 }

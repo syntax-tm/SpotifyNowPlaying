@@ -1,10 +1,9 @@
-﻿namespace SpotifyNowPlaying.Views.Settings
+﻿namespace SpotifyNowPlaying.Views.Settings;
+
+public partial class SettingsView
 {
-    public partial class SettingsView
+    public SettingsView()
     {
-        public SettingsView()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }

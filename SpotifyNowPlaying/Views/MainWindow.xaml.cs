@@ -1,10 +1,9 @@
-﻿namespace SpotifyNowPlaying.Views
+﻿namespace SpotifyNowPlaying.Views;
+
+public partial class MainWindow
 {
-    public partial class MainWindow
+    public MainWindow()
     {
-        public MainWindow()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
     }
 }
