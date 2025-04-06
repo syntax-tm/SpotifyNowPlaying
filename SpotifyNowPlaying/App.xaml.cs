@@ -28,6 +28,12 @@ public partial class App
 
             await SpotifyClientHelper.Init();
             
+            // TODO: create an argument to dump this to a file instead
+            var allPlaylists = await SpotifyClientHelper.Client.PaginateAll(await SpotifyClientHelper.Client.Playlists.CurrentUsers());
+            var json = JsonConvert.SerializeObject(allPlaylists, Formatting.Indented);
+
+            Clipboard.SetText(json);
+        
             MainWindow = new MainWindow();
             MainWindow.Closed += WindowOnClosed;
             
