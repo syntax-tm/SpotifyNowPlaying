@@ -40,7 +40,7 @@ public static class SpotifyClientHelper
         {
             CodeChallengeMethod = CODE_CHALLENGE_METHOD,
             CodeChallenge = _challenge,
-            Scope = new [] { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserReadRecentlyPlayed }
+            Scope = new [] { Scopes.UserReadCurrentlyPlaying, Scopes.UserReadPlaybackState, Scopes.UserReadRecentlyPlayed, Scopes.PlaylistReadPrivate, Scopes.PlaylistReadCollaborative }
         };
         
         _tcs = new ();

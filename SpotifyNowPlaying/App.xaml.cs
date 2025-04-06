@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Runtime.Versioning;
+using System.Text;
 using System.Windows;
 using log4net;
 using Newtonsoft.Json;
@@ -28,12 +31,38 @@ public partial class App
 
             await SpotifyClientHelper.Init();
             
+            var client = SpotifyClientHelper.Client;
+
             // TODO: create an argument to dump this to a file instead
             var allPlaylists = await SpotifyClientHelper.Client.PaginateAll(await SpotifyClientHelper.Client.Playlists.CurrentUsers());
-            var json = JsonConvert.SerializeObject(allPlaylists, Formatting.Indented);
 
-            Clipboard.SetText(json);
-        
+            var playlists = new Dictionary<string, object>();
+
+            foreach (var playlist in allPlaylists)
+            {
+                var image = await SpotifyClientHelper.Client.Playlists.GetCovers(playlist.Id);
+                
+                var firstImage = image.OrderByDescending(i => i?.Height ?? 0 * i?.Width ?? 0).FirstOrDefault();
+
+                playlists[playlist.Id] = new
+                {
+                    id = playlist.Id,
+                    name = playlist.Name,
+                    description = playlist.Description,
+                    cover_photo = firstImage.Url,
+                    href = playlist.Href,
+                    is_collaborative = playlist.Collaborative,
+                    is_private = !playlist.Public,
+                    image = firstImage
+                };
+            }
+            var json = JsonConvert.SerializeObject(playlists.Values, Formatting.Indented);
+
+            var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            var downloadsPath = Path.Join(userProfile, "Downloads");
+
+            File.WriteAllText(Path.Join(downloadsPath, @"spotify_playlists_with_images.json"), json, new UTF8Encoding(false));
+
             MainWindow = new MainWindow();
             MainWindow.Closed += WindowOnClosed;
             
