@@ -63,6 +63,8 @@ public partial class App
 
             File.WriteAllText(Path.Join(downloadsPath, @"playlists.json"), json, new UTF8Encoding(false));
 
+            Environment.Exit(0);
+
             MainWindow = new MainWindow();
             MainWindow.Closed += WindowOnClosed;
             
